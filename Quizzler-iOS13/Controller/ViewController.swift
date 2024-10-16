@@ -10,73 +10,76 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    @IBOutlet weak var scoreLabel: UILabel!
     @IBOutlet weak var questionLabel: UILabel!
-    @IBOutlet weak var trueButton: UIButton!
-    @IBOutlet weak var falseButton: UIButton!
-    @IBOutlet weak var progressBar: UIProgressView!
+    @IBOutlet weak var choice1: UIButton!
+    @IBOutlet weak var choice2: UIButton!
+    @IBOutlet weak var choice3: UIButton!
     
-    var questions = [
-        Question(q: "What is your name?", a: "True"),
-        Question(q: "What is your age?", a: "False"),
-        Question(q: "What is your height?", a: "True"),
-        Question(q: "What is your weight?", a: "False"),
-        Question(q: "What is your favourite colour?", a: "False")]
-      
-    var score = 0
-    var currentQuestion = 0
+    @IBOutlet weak var progressBar: UIProgressView!
+    var quizBrain = QuizBrain()
+    
+  
     override func viewDidLoad() {
         super.viewDidLoad()
-        questionLabel.text = questions[currentQuestion].question
+        scoreLabel.text =  ""
+        questionLabel.text = quizBrain.getQuestion().question
+        print(quizBrain.getQuestion().answer)
+        choice1.setTitle(quizBrain.getQuestion().answer[0], for: .normal)
+        choice2.setTitle(quizBrain.getQuestion().answer[1], for: .normal)
+        choice3.setTitle(quizBrain.getQuestion().answer[2], for: .normal)
         // Do any additional setup after loading the view.
+ 
     }
     
    func updateButtonbackgroundColor()  {
-       trueButton.backgroundColor = .clear
-       falseButton.backgroundColor = .clear
+       choice1.backgroundColor = .clear
+       choice2.backgroundColor = .clear
+       choice3.backgroundColor = .clear
+       
         }
     
     @IBAction func answerQuestion(_ sender: UIButton) {
-        print(sender.titleLabel?.text ?? " ")
+        let ansewr = sender.titleLabel?.text ?? " "
         
-        if currentQuestion == questions.count - 1 {
-           
+        let isCorrectAnswer = quizBrain.checkAnswer(ansewr)
+        scoreLabel.text = "Score = \(quizBrain.score)"
+        if quizBrain.isEnd() {
+            
             progressBar.progress = 1
-            currentQuestion+=1
-            questionLabel.text = "You have got \(score) out of \(questions.count) questions correct"
-          
-            trueButton.isHidden = true
-            falseButton.isHidden = true
+            questionLabel.text = "You have got \(quizBrain.score) out of \(quizBrain.questions.count) questions correct"
+            
+            choice1.isHidden = true
+            choice2.isHidden = true
+            choice3.isHidden = true
             
         }
         
-     
-    if currentQuestion < questions.count {
-        if sender.titleLabel?.text == questions[currentQuestion].answer {
-            sender.backgroundColor = .green
-            score += 1
-            currentQuestion+=1
-            progressBar.progress = Float(currentQuestion)/Float(questions.count)
         
-            questionLabel.text = questions[currentQuestion].question
+        if quizBrain.checkNextQuestion() {
+            if isCorrectAnswer {
+                sender.backgroundColor = .green
+                updateUi()
+            } else{
+                sender.backgroundColor = .red
+                updateUi()
+                
+            }
+        }
+    }
+         
+        func updateUi() {
+            progressBar.progress = quizBrain.getProgress()
+        
+            questionLabel.text = quizBrain.getQuestion().question
+            choice1.setTitle(quizBrain.getQuestion().answer[0], for: .normal)
+            choice2.setTitle(quizBrain.getQuestion().answer[1], for: .normal)
+            choice3.setTitle(quizBrain.getQuestion().answer[2], for: .normal)
            
-            print(progressBar.progress )
+    
             Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { timer in
                 self.updateButtonbackgroundColor()
-            }
-        } else{
-            sender.backgroundColor = .red
-            currentQuestion+=1
-            progressBar.progress = Float(currentQuestion)/Float(questions.count)
-            print(progressBar.progress )
-            questionLabel.text = questions[currentQuestion].question
-            Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { timer in
-                self.updateButtonbackgroundColor()
-            }
-
         }
-        }
-        
-        print("here we are")
      
         
     }
